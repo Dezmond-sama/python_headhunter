@@ -62,12 +62,40 @@ def get_resume(link):
     }
     return resume
 
-
-if __name__ == "__main__":
+def download_data(tag, filename):
     data = []
-    for a in get_links("python"):
+    for a in get_links(tag):
         data.append(get_resume(a))
         time.sleep(1)
-        with open("data.json","w",encoding="utf-8")as f:
+        with open(filename,"w",encoding="utf-8")as f:
             json.dump(data,f,indent = 4, ensure_ascii=False)
+
+def read_data(filename):
+    with open(filename, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    return data
+
+def get_skills(data, freq):
+    skills = {}
+    dataCount = 0
+    for d in data:
+        if not d:
+            continue
+        dataCount += 1
+        for tag in d.get("tags", []):
+            skills[tag] = skills.get(tag, 0) + 1
+    
+    skills = {k: v / dataCount for k, v in skills.items() if v / dataCount >= freq}
+    skills_sorted = sorted(skills, key=lambda x: skills[x], reverse=True)
+    return {skill: skills[skill] for skill in skills_sorted}
+
+if __name__ == "__main__":
+    data = read_data("frontend.json")
+    print("FRONTEND")
+    for k, v in get_skills(data, 0.1).items():
+        print(k, v)
             
+    data = read_data("data.json")
+    print("PYTHON")
+    for k, v in get_skills(data, 0.1).items():
+        print(k, v)
